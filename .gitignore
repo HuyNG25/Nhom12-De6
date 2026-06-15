@@ -20,3 +20,7 @@ Desktop.ini
 
 # User test files
 test_api.ps1
+
+# Build and nested project folders
+ProjectMemberService/publish/
+BTL_fulltack/
