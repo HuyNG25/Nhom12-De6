@@ -39,12 +39,7 @@ namespace ProjectMemberService.Services
 
 
             var startDate = dto.StartDate ?? DateTime.UtcNow;
-            var endDate = dto.EndDate ?? startDate.AddDays(14); // Mặc định 2 tuần
-
-            if (endDate < startDate)
-            {
-                return ApiResponse<SprintResponseDto>.Fail("Ngày kết thúc phải sau ngày bắt đầu");
-            }
+            var endDate = startDate.AddDays(14); // Cố định 2 tuần theo nghiệp vụ N1
 
             // Kiểm tra ngày của sprint so với dự án
             if (startDate < project.StartDate)
@@ -141,12 +136,7 @@ namespace ProjectMemberService.Services
             }
 
             var proposedStartDate = dto.StartDate ?? sprint.StartDate;
-            var proposedEndDate = dto.EndDate ?? sprint.EndDate;
-
-            if (proposedEndDate < proposedStartDate)
-            {
-                return ApiResponse<SprintResponseDto>.Fail("Ngày kết thúc phải sau ngày bắt đầu");
-            }
+            var proposedEndDate = proposedStartDate.AddDays(14); // Cố định 2 tuần theo nghiệp vụ N1
 
             // Kiểm tra ngày của sprint so với dự án
             if (proposedStartDate < sprint.Project.StartDate)

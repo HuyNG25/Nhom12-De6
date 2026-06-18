@@ -1,36 +1,36 @@
 version: '3.8'
 
 services:
-  rabbitmq:
+  n1-rabbitmq:
     image: rabbitmq:3-management
-    container_name: rabbitmq-broker
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+    container_name: n1-rabbitmq-broker
+    # Đã ẩn ports để tránh xung đột với nhóm khác
     networks:
-      - project-network
+      - n1-project-network
 
-  project-member-service:
+  n1-project-member-service:
     build:
       context: ./ProjectMemberService
       dockerfile: Dockerfile
-    container_name: project-member-service
+    container_name: n1-project-member-service
     ports:
-      - "5100:8080"
+      - "5001:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - Jwt__Key=SuperSecretKey_ProjectMemberService_2024_DoNotShare!
       - Jwt__Issuer=ProjectMemberService
       - Jwt__Audience=ProjectMemberServiceClient
       - ConnectionStrings__DefaultConnection=Host=host.docker.internal;Database=ProjectDB;Username=postgres;Password=03092005Ah;Port=5432
-      - RabbitMq__Host=rabbitmq
+      - RabbitMq__Host=n1-rabbitmq
       - RESET_DB=false
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
-      - rabbitmq
+      - n1-rabbitmq
     restart: unless-stopped
     networks:
-      - project-network
+      - n1-project-network
 
 networks:
-  project-network:
+  n1-project-network:
     driver: bridge

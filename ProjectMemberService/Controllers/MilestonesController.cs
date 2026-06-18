@@ -50,7 +50,8 @@ namespace ProjectMemberService.Controllers
         [ProducesResponseType(typeof(ApiResponse<List<MilestoneResponseDto>>), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetAll(Guid projectId)
         {
-            var result = await _milestoneService.GetAllAsync(projectId);
+            var userId = GetUserId();
+            var result = await _milestoneService.GetAllAsync(projectId, userId);
 
             if (!result.Success)
                 return NotFound(result);
@@ -66,7 +67,8 @@ namespace ProjectMemberService.Controllers
         [ProducesResponseType(typeof(ApiResponse<MilestoneResponseDto>), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetById(Guid projectId, Guid milestoneId)
         {
-            var result = await _milestoneService.GetByIdAsync(projectId, milestoneId);
+            var userId = GetUserId();
+            var result = await _milestoneService.GetByIdAsync(projectId, milestoneId, userId);
 
             if (!result.Success)
                 return NotFound(result);

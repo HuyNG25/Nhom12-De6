@@ -69,12 +69,18 @@ namespace ProjectMemberService.Services
             return ApiResponse<MilestoneResponseDto>.Ok(MapToResponse(milestone), "Tạo milestone thành công");
         }
 
-        public async Task<ApiResponse<List<MilestoneResponseDto>>> GetAllAsync(Guid projectId)
+        public async Task<ApiResponse<List<MilestoneResponseDto>>> GetAllAsync(Guid projectId, string userId)
         {
             var projectExists = await _context.Projects.AnyAsync(p => p.Id == projectId);
             if (!projectExists)
             {
                 return ApiResponse<List<MilestoneResponseDto>>.Fail("Không tìm thấy dự án");
+            }
+
+            var isAuthorized = await _permissionService.IsAuthorizedAsync(projectId, userId, MemberRole.Owner, MemberRole.Manager, MemberRole.Member, MemberRole.Viewer);
+            if (!isAuthorized)
+            {
+                return ApiResponse<List<MilestoneResponseDto>>.Fail("Bạn không có quyền xem danh sách milestone của dự án này");
             }
 
             var milestones = await _context.Milestones
@@ -86,7 +92,7 @@ namespace ProjectMemberService.Services
             return ApiResponse<List<MilestoneResponseDto>>.Ok(result);
         }
 
-        public async Task<ApiResponse<MilestoneResponseDto>> GetByIdAsync(Guid projectId, Guid milestoneId)
+        public async Task<ApiResponse<MilestoneResponseDto>> GetByIdAsync(Guid projectId, Guid milestoneId, string userId)
         {
             var milestone = await _context.Milestones
                 .FirstOrDefaultAsync(m => m.Id == milestoneId && m.ProjectId == projectId);
@@ -94,6 +100,12 @@ namespace ProjectMemberService.Services
             if (milestone == null)
             {
                 return ApiResponse<MilestoneResponseDto>.Fail("Không tìm thấy milestone");
+            }
+
+            var isAuthorized = await _permissionService.IsAuthorizedAsync(projectId, userId, MemberRole.Owner, MemberRole.Manager, MemberRole.Member, MemberRole.Viewer);
+            if (!isAuthorized)
+            {
+                return ApiResponse<MilestoneResponseDto>.Fail("Bạn không có quyền xem thông tin milestone này");
             }
 
             return ApiResponse<MilestoneResponseDto>.Ok(MapToResponse(milestone));

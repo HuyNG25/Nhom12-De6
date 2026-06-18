@@ -58,11 +58,15 @@ namespace ProjectMemberService.Services
             return ApiResponse<MemberResponseDto>.Ok(MapToResponse(member), "Thêm thành viên thành công");
         }
 
-        public async Task<ApiResponse<List<MemberResponseDto>>> GetMembersAsync(Guid projectId)
+        public async Task<ApiResponse<List<MemberResponseDto>>> GetMembersAsync(Guid projectId, string userId)
         {
             var projectExists = await _context.Projects.AnyAsync(p => p.Id == projectId);
             if (!projectExists)
                 return ApiResponse<List<MemberResponseDto>>.Fail("Không tìm thấy dự án");
+
+            var isAuthorized = await _permissionService.IsAuthorizedAsync(projectId, userId, MemberRole.Owner, MemberRole.Manager, MemberRole.Member, MemberRole.Viewer);
+            if (!isAuthorized)
+                return ApiResponse<List<MemberResponseDto>>.Fail("Bạn không có quyền xem danh sách thành viên của dự án này");
 
             var members = await _context.ProjectMembers
                 .Where(m => m.ProjectId == projectId)
@@ -81,11 +85,18 @@ namespace ProjectMemberService.Services
 
             if (targetMember == null) return ApiResponse<MemberResponseDto>.Fail("Không tìm thấy thành viên");
 
+            if (targetMember.Role == MemberRole.Owner && dto.Role != MemberRole.Owner)
+            {
+                var ownerCount = await _context.ProjectMembers.CountAsync(m => m.ProjectId == projectId && m.Role == MemberRole.Owner);
+                if (ownerCount <= 1)
+                {
+                    return ApiResponse<MemberResponseDto>.Fail("Không thể đổi quyền của Owner duy nhất");
+                }
+            }
+
             var isSystemAdmin = await _permissionService.IsSystemAdminAsync(operatorUserId);
             if (!isSystemAdmin)
             {
-                if (targetMember.Role == MemberRole.Owner) return ApiResponse<MemberResponseDto>.Fail("Không thể đổi quyền Owner");
-
                 var operatorMember = await _permissionService.GetMemberAsync(projectId, operatorUserId);
                 if (operatorMember != null && operatorMember.Role == MemberRole.Manager)
                 {
@@ -113,11 +124,18 @@ namespace ProjectMemberService.Services
 
             if (member == null) return ApiResponse<bool>.Fail("Không tìm thấy thành viên");
 
+            if (member.Role == MemberRole.Owner)
+            {
+                var ownerCount = await _context.ProjectMembers.CountAsync(m => m.ProjectId == projectId && m.Role == MemberRole.Owner);
+                if (ownerCount <= 1)
+                {
+                    return ApiResponse<bool>.Fail("Không thể xóa Owner duy nhất của dự án");
+                }
+            }
+
             var isSystemAdmin = await _permissionService.IsSystemAdminAsync(operatorUserId);
             if (!isSystemAdmin)
             {
-                if (member.Role == MemberRole.Owner) return ApiResponse<bool>.Fail("Không thể xóa Owner");
-
                 var operatorMember = await _permissionService.GetMemberAsync(projectId, operatorUserId);
                 if (operatorMember != null && operatorMember.Role == MemberRole.Manager && (member.Role == MemberRole.Manager || member.Role == MemberRole.Owner))
                     return ApiResponse<bool>.Fail("Manager không có quyền xóa Manager khác hoặc Owner");

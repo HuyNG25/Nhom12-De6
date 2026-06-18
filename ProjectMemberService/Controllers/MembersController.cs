@@ -46,7 +46,8 @@ namespace ProjectMemberService.Controllers
         [ProducesResponseType(typeof(ApiResponse<List<MemberResponseDto>>), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetMembers(Guid projectId)
         {
-            var result = await _memberService.GetMembersAsync(projectId);
+            var userId = GetUserId();
+            var result = await _memberService.GetMembersAsync(projectId, userId);
 
             if (!result.Success)
                 return NotFound(result);

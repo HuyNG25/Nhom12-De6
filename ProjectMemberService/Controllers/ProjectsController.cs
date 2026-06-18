@@ -50,7 +50,7 @@ namespace ProjectMemberService.Controllers
         [ProducesResponseType(typeof(ApiResponse<List<ProjectResponseDto>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll([FromQuery] bool myProjects = false)
         {
-            var userId = myProjects ? GetUserId() : null;
+            var userId = GetUserId();
             var result = await _projectService.GetAllAsync(userId);
             return Ok(result);
         }

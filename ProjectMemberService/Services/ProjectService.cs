@@ -66,7 +66,11 @@ namespace ProjectMemberService.Services
 
             if (!string.IsNullOrEmpty(userId))
             {
-                query = query.Where(p => p.Members.Any(m => m.UserId == userId));
+                var isSystemAdmin = await _permissionService.IsSystemAdminAsync(userId);
+                if (!isSystemAdmin)
+                {
+                    query = query.Where(p => p.Members.Any(m => m.UserId == userId));
+                }
             }
 
             var projects = await query
