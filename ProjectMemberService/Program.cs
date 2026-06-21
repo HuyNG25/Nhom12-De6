@@ -38,6 +38,27 @@ builder.Services.AddControllers()
 // ===== Built-in OpenAPI (.NET 10) =====
 builder.Services.AddOpenApi();
 
+// ===== Authentication & Authorization =====
+var jwtSecret = builder.Configuration["Jwt:Key"] 
+    ?? throw new InvalidOperationException("Jwt:Key is required.");
+
+builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtSecret)),
+            ClockSkew = TimeSpan.FromMinutes(2)
+        };
+    });
+builder.Services.AddAuthorization();
+
 // ===== CORS =====
 builder.Services.AddCors(options =>
 {
@@ -94,7 +115,8 @@ app.UseSwaggerUI(options =>
 
 app.UseCors("AllowAll");
 
-
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

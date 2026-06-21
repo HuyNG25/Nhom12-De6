@@ -23,88 +23,47 @@ namespace ProjectMemberService.Controllers
 
         private string GetUserId()
         {
-            return Request.Headers["X-User-Id"].FirstOrDefault() ?? "anonymous";
+            return User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
+                ?? Request.Headers["X-User-Id"].FirstOrDefault() 
+                ?? "anonymous";
         }
 
         /// <summary>
-        /// Lấy danh sách System Admins
+        /// Lấy danh sách phân quyền hệ thống (theo dạng ảnh 2)
         /// </summary>
-        [HttpGet("Admins")]
-        [ProducesResponseType(typeof(ApiResponse<List<string>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAdmins()
+        [HttpGet("SystemRoles")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult GetSystemRoles()
         {
-            var operatorId = GetUserId();
-            if (!await _permissionService.IsSystemAdminAsync(operatorId))
+            var defaultUsers = new List<dynamic>
             {
-                return StatusCode(403, ApiResponse<List<string>>.Fail("Chỉ System Admin mới xem được danh sách này"));
-            }
-
-            var admins = await _context.SystemAdmins.Select(a => a.UserId).ToListAsync();
-            return Ok(ApiResponse<List<string>>.Ok(admins));
-        }
-
-        /// <summary>
-        /// Cấp quyền System Admin cho một user
-        /// </summary>
-        [HttpPost("Admins/{userId}")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> AddAdmin(string userId)
-        {
-            var operatorId = GetUserId();
-            if (!await _permissionService.IsSystemAdminAsync(operatorId))
-            {
-                return StatusCode(403, ApiResponse<bool>.Fail("Chỉ System Admin mới có quyền cấp phép"));
-            }
-
-            if (await _context.SystemAdmins.AnyAsync(a => a.UserId == userId))
-            {
-                return Ok(ApiResponse<bool>.Ok(true, "User đã là Admin từ trước"));
-            }
-
-            _context.SystemAdmins.Add(new SystemAdmin
-            {
-                Id = Guid.NewGuid(),
-                UserId = userId,
-                CreatedAt = DateTime.UtcNow
-            });
-            await _context.SaveChangesAsync();
-
-            return Ok(ApiResponse<bool>.Ok(true, "Đã cấp quyền Admin thành công"));
-        }
-
-        /// <summary>
-        /// Thu hồi quyền System Admin
-        /// </summary>
-        [HttpDelete("Admins/{userId}")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> RemoveAdmin(string userId)
-        {
-            var operatorId = GetUserId();
-            if (!await _permissionService.IsSystemAdminAsync(operatorId))
-            {
-                return StatusCode(403, ApiResponse<bool>.Fail("Chỉ System Admin mới có quyền thu hồi"));
-            }
-
-            var admin = await _context.SystemAdmins.FirstOrDefaultAsync(a => a.UserId == userId);
-            if (admin == null)
-            {
-                return Ok(ApiResponse<bool>.Ok(true, "User không phải là Admin"));
-            }
-
-            // Ngăn chặn xóa chính mình nếu là admin cuối cùng? (Có thể bỏ qua, nhưng an toàn hơn thì nên có)
-            if (operatorId == userId)
-            {
-                var adminCount = await _context.SystemAdmins.CountAsync();
-                if (adminCount <= 1)
-                {
-                    return BadRequest(ApiResponse<bool>.Fail("Không thể thu hồi quyền của Admin duy nhất"));
+                new { 
+                    stt = 1, 
+                    username = "admin", 
+                    email = "admin@gmail.com", 
+                    fullName = "Nguyễn Văn Admin", 
+                    systemRole = "Admin", 
+                    commonPassword = "Password123" 
+                },
+                new { 
+                    stt = 2, 
+                    username = "duymanh", 
+                    email = "manh.nguyen@gmail.com", 
+                    fullName = "Nguyễn Duy Mạnh", 
+                    systemRole = "User", 
+                    commonPassword = "Password123" 
+                },
+                new { 
+                    stt = 3, 
+                    username = "tranailinh", 
+                    email = "linh.tran@gmail.com", 
+                    fullName = "Trần Ái Linh", 
+                    systemRole = "User", 
+                    commonPassword = "Password123" 
                 }
-            }
-
-            _context.SystemAdmins.Remove(admin);
-            await _context.SaveChangesAsync();
-
-            return Ok(ApiResponse<bool>.Ok(true, "Đã thu hồi quyền Admin thành công"));
+            };
+            
+            return Ok(defaultUsers);
         }
     }
 }

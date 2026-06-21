@@ -71,15 +71,7 @@ namespace ProjectMemberService.Services
                     // Nếu user chỉ muốn lấy dự án của họ (tab "Dự án của tôi")
                     query = query.Where(p => p.Members.Any(m => m.UserId == userId));
                 }
-                else
-                {
-                    // Nếu lấy tất cả, System Admin được xem hết, người khác chỉ xem dự án của mình
-                    var isSystemAdmin = await _permissionService.IsSystemAdminAsync(userId);
-                    if (!isSystemAdmin)
-                    {
-                        query = query.Where(p => p.Members.Any(m => m.UserId == userId));
-                    }
-                }
+                // Nếu myProjectsOnly = false, cho phép lấy tất cả (không gán thêm điều kiện Where)
             }
 
             var projects = await query
@@ -103,11 +95,7 @@ namespace ProjectMemberService.Services
                 return ApiResponse<ProjectDetailResponseDto>.Fail("Không tìm thấy dự án");
             }
 
-            var isAuthorized = await _permissionService.IsAuthorizedAsync(id, userId, MemberRole.Owner, MemberRole.Manager, MemberRole.Member, MemberRole.Viewer);
-            if (!isAuthorized)
-            {
-                return ApiResponse<ProjectDetailResponseDto>.Fail("Bạn không có quyền xem thông tin dự án này");
-            }
+            // Bất kỳ ai cũng có quyền Read-only thông tin dự án, nên đã gỡ bỏ block IsAuthorizedAsync
 
             var response = new ProjectDetailResponseDto
             {

@@ -198,15 +198,29 @@ namespace ProjectMemberService.Services
 
             await _context.SaveChangesAsync();
 
-            var eventData = new
+            var memberIds = await _context.ProjectMembers
+                .Where(m => m.ProjectId == projectId)
+                .Select(m => m.UserId)
+                .ToListAsync();
+
+            var validRecipientIds = new List<Guid>();
+            foreach (var mId in memberIds)
             {
-                Id = sprint.Id,
-                ProjectId = sprint.ProjectId,
-                Name = sprint.Name,
-                Goal = sprint.Goal,
-                StartDate = sprint.StartDate,
-                EndDate = sprint.EndDate,
-                Status = sprint.Status.ToString()
+                if (Guid.TryParse(mId, out var g))
+                {
+                    validRecipientIds.Add(g);
+                }
+            }
+
+            var eventData = new NotificationEventRequest
+            {
+                EventType = "sprint.started",
+                ProjectId = projectId,
+                SprintId = sprint.Id,
+                ReferenceId = sprint.Id,
+                ActorUserId = Guid.TryParse(operatorUserId, out var parsedActorId) ? parsedActorId : null,
+                RecipientUserIds = validRecipientIds,
+                Message = $"Sprint '{sprint.Name}' đã bắt đầu."
             };
             await _eventPublisher.PublishAsync("sprint.started", eventData);
 

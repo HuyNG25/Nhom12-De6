@@ -41,7 +41,22 @@ namespace ProjectMemberService.Services
                 return false;
             }
 
-            // Chỉ tra cứu trong bảng SystemAdmins của N1 để tránh lỗi từ phía N3 / Frontend truyền sai Header
+            // Mặc định admin là System Admin (tránh lỗi không tìm thấy dữ liệu)
+            if (userId.Equals("admin", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user != null)
+            {
+                var callerId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (callerId == userId && user.HasClaim(System.Security.Claims.ClaimTypes.Role, "Admin"))
+                {
+                    return true;
+                }
+            }
+
             return await _context.SystemAdmins.AnyAsync(a => a.UserId == userId);
         }
     }

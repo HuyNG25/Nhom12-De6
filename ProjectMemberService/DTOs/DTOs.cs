@@ -194,4 +194,18 @@ namespace ProjectMemberService.DTOs
         public static ApiResponse<T> Fail(string message)
             => new() { Success = false, Message = message };
     }
+
+    public class NotificationEventRequest
+    {
+        public string EventType { get; set; } = string.Empty;
+        public Guid? ReferenceId { get; set; }
+        public Guid? TaskId { get; set; }
+        public Guid? ProjectId { get; set; }
+        public Guid? SprintId { get; set; }
+        public Guid? ActorUserId { get; set; }
+        public Guid? TargetUserId { get; set; }
+        public List<Guid> RecipientUserIds { get; set; } = new();
+        public string? Message { get; set; }
+        public string? Detail { get; set; }
+    }
 }

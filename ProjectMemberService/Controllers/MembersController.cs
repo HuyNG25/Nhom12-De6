@@ -19,7 +19,9 @@ namespace ProjectMemberService.Controllers
 
         private string GetUserId()
         {
-            return Request.Headers["X-User-Id"].FirstOrDefault() ?? "anonymous";
+            return User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
+                ?? Request.Headers["X-User-Id"].FirstOrDefault() 
+                ?? "anonymous";
         }
 
         /// <summary>
