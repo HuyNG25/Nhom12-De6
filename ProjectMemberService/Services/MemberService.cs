@@ -46,26 +46,28 @@ namespace ProjectMemberService.Services
                 UserId = dto.UserId,
                 DisplayName = dto.DisplayName,
                 Email = dto.Email,
-                Role = MemberRole.Member // Ép buộc mặc định là Member (không quyền sửa/xóa)
+                Role = dto.Role // Dùng vai trò truyền từ DTO thay vì ép buộc Member cứng nhắc
             };
 
             _context.ProjectMembers.Add(member);
             await _context.SaveChangesAsync();
             
             // Event Publisher
+            var actorGuid = UserGuidMapper.ToGuid(operatorUserId);
+            var targetGuid = UserGuidMapper.ToGuid(dto.UserId);
             var eventData = new NotificationEventRequest
             {
                 EventType = "member.added",
                 ProjectId = projectId,
                 ReferenceId = projectId,
-                ActorUserId = Guid.TryParse(operatorUserId, out var parsedActorId) ? parsedActorId : null,
-                TargetUserId = Guid.TryParse(dto.UserId, out var parsedTargetId) ? parsedTargetId : null,
+                ActorUserId = actorGuid != Guid.Empty ? actorGuid : null,
+                TargetUserId = targetGuid != Guid.Empty ? targetGuid : null,
                 RecipientUserIds = new List<Guid>(),
                 Message = $"Bạn đã được thêm vào dự án."
             };
-            if (Guid.TryParse(dto.UserId, out var validRecipientId))
+            if (targetGuid != Guid.Empty)
             {
-                eventData.RecipientUserIds.Add(validRecipientId);
+                eventData.RecipientUserIds.Add(targetGuid);
             }
 
             await _eventPublisher.PublishAsync("member.added", eventData);

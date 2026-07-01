@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Quản lý Dự án & Thành viên - Nhóm 12</title>
+    <!-- Modern Typography & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Floating 3D Backdrop Blobs -->
+    <div class="blob-container">
+        <div class="blob bg-blob-1"></div>
+        <div class="blob bg-blob-2"></div>
+        <div class="blob bg-blob-3"></div>
+    </div>
+
+    <!-- Premium Header -->
+    <header class="app-header">
+        <div class="header-logo">
+            <span class="material-symbols-outlined logo-icon">grid_view</span>
+            <div class="logo-text">
+                <h1>ProjectMember</h1>
+                <span class="sub-text">Nhóm 12 - Đề 6</span>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <!-- System Status -->
+            <div class="status-indicator">
+                <span class="status-dot online"></span>
+                <span class="status-label">API Connected</span>
+            </div>
+
+            <!-- Theme Toggle Switcher -->
+            <button id="theme-toggle-btn" class="theme-toggle-btn" title="Chuyển chế độ sáng/tối">
+                <span class="material-symbols-outlined" id="theme-icon">dark_mode</span>
+            </button>
+
+            <!-- Custom User-Id Authenticator (X-User-Id Simulator) -->
+            <div class="user-selector-container">
+                <label for="current-user-select" class="user-select-label">
+                    <span class="material-symbols-outlined">shield_person</span> Vai trò kiểm thử:
+                </label>
+                <div class="select-wrapper">
+                    <select id="current-user-select">
+                        <option value="owner_1" selected>owner_1 (Owner mặc định)</option>
+                        <option value="manager_2">manager_2 (Manager)</option>
+                        <option value="member_2">member_2 (Member)</option>
+                        <option value="viewer_1">viewer_1 (Viewer)</option>
+                        <option value="admin">admin (System Admin)</option>
+                    </select>
+                </div>
+                <div class="custom-id-input-group">
+                    <input type="text" id="custom-user-id" placeholder="User ID tùy ý...">
+                    <button id="btn-apply-custom-user" class="btn-secondary-sm">Áp dụng</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Notification Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Main Content Container -->
+    <main class="app-layout">
+        <!-- Sidebar: Projects list -->
+        <aside class="sidebar-panel glass-panel">
+            <div class="panel-header">
+                <h2>Danh sách Dự án</h2>
+                <button id="btn-open-create-project" class="btn-primary">
+                    <span class="material-symbols-outlined">add</span> Tạo dự án
+                </button>
+            </div>
+            
+            <div class="filter-tabs">
+                <button id="tab-all-projects" class="filter-tab active">Tất cả</button>
+                <button id="tab-my-projects" class="filter-tab">Của tôi</button>
+            </div>
+
+            <div id="projects-list-container" class="projects-list">
+                <!-- Project cards injected here by JS -->
+                <div class="loading-state">
+                    <span class="material-symbols-outlined rotate">sync</span> Đang tải danh sách...
+                </div>
+            </div>
+        </aside>
+
+        <!-- Project Details & Features -->
+        <section class="main-panel glass-panel">
+            <!-- Empty state when no project selected -->
+            <div id="empty-project-detail" class="empty-state">
+                <span class="material-symbols-outlined empty-icon animate-bounce">folder_open</span>
+                <h3>Chọn một dự án để hiển thị chi tiết</h3>
+                <p>Chọn từ danh sách bên trái hoặc tạo dự án mới để bắt đầu quản lý thành viên, sprint và milestone.</p>
+            </div>
+
+            <!-- Active project detail content -->
+            <div id="active-project-detail" class="project-detail-layout" style="display: none;">
+                <!-- Project Detail Hero Card -->
+                <div class="project-hero-card glass-panel" id="project-hero-card">
+                    <div class="hero-header">
+                        <div class="hero-title-group">
+                            <span id="detail-project-status" class="status-badge">Active</span>
+                            <h2 id="detail-project-name">Tên dự án mẫu</h2>
+                        </div>
+                        <div class="hero-actions">
+                            <button id="btn-edit-project" class="btn-action-icon" title="Chỉnh sửa dự án">
+                                <span class="material-symbols-outlined">edit</span>
+                            </button>
+                            <button id="btn-delete-project" class="btn-action-icon btn-danger-icon" title="Xóa dự án">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                    <p id="detail-project-desc" class="project-desc">Mô tả chi tiết dự án.</p>
+                    <div class="project-meta-grid">
+                        <div class="meta-item">
+                            <span class="material-symbols-outlined">calendar_today</span>
+                            <div>
+                                <label>Thời gian hiệu lực</label>
+                                <span id="detail-project-dates">01/01/2026 - 31/12/2026</span>
+                            </div>
+                        </div>
+                        <div class="meta-item">
+                            <span class="material-symbols-outlined">person</span>
+                            <div>
+                                <label>Người tạo (Owner)</label>
+                                <span id="detail-project-creator">owner_user_1</span>
+                            </div>
+                        </div>
+                        <div class="meta-item">
+                            <span class="material-symbols-outlined">group</span>
+                            <div>
+                                <label>Thành viên</label>
+                                <span id="detail-project-members-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs: Members, Sprints, Milestones -->
+                <div class="detail-tabs-container glass-panel">
+                    <nav class="detail-navigation-tabs">
+                        <button class="nav-tab active" data-tab="tab-members-content">
+                            <span class="material-symbols-outlined">group</span> Thành viên
+                        </button>
+                        <button class="nav-tab" data-tab="tab-sprints-content">
+                            <span class="material-symbols-outlined">bolt</span> Sprints
+                        </button>
+                        <button class="nav-tab" data-tab="tab-milestones-content">
+                            <span class="material-symbols-outlined">flag</span> Milestones
+                        </button>
+                    </nav>
+
+                    <!-- Tab Contents -->
+                    <div class="tab-contents">
+                        <!-- 1. Members Tab Content -->
+                        <div id="tab-members-content" class="tab-pane active">
+                            <div class="section-title-bar">
+                                <h3>Quản lý Thành viên</h3>
+                                <button id="btn-open-add-member" class="btn-secondary">
+                                    <span class="material-symbols-outlined">person_add</span> Thêm thành viên
+                                </button>
+                            </div>
+                            <div class="table-container">
+                                <table class="custom-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Họ tên & ID</th>
+                                            <th>Email</th>
+                                            <th>Vai trò (Role)</th>
+                                            <th>Ngày tham gia</th>
+                                            <th class="actions-col">Hành động</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="project-members-table-body">
+                                        <!-- Injected via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- 2. Sprints Tab Content -->
+                        <div id="tab-sprints-content" class="tab-pane">
+                            <div class="section-title-bar">
+                                <h3>Danh sách Sprints</h3>
+                                <button id="btn-open-create-sprint" class="btn-secondary">
+                                    <span class="material-symbols-outlined">add_circle</span> Tạo Sprint mới
+                                </button>
+                            </div>
+                            <div id="sprints-grid" class="sprints-grid">
+                                <!-- Injected via JS -->
+                            </div>
+                        </div>
+
+                        <!-- 3. Milestones Tab Content -->
+                        <div id="tab-milestones-content" class="tab-pane">
+                            <div class="section-title-bar">
+                                <h3>Mốc quan trọng (Milestones)</h3>
+                                <button id="btn-open-create-milestone" class="btn-secondary">
+                                    <span class="material-symbols-outlined">flag_circle</span> Thêm Milestone
+                                </button>
+                            </div>
+                            <div class="milestones-timeline" id="milestones-list">
+                                <!-- Injected via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- 1. Create/Edit Project Modal -->
+    <div id="modal-project" class="modal-backdrop" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modal-project-title">Tạo dự án mới</h3>
+                <button class="btn-close-modal material-symbols-outlined" data-modal="modal-project">close</button>
+            </div>
+            <form id="form-project">
+                <input type="hidden" id="project-id-input">
+                <div class="form-group">
+                    <label for="project-name">Tên dự án <span class="required">*</span></label>
+                    <input type="text" id="project-name" required placeholder="Nhập tên dự án...">
+                </div>
+                <div class="form-group">
+                    <label for="project-desc">Mô tả</label>
+                    <textarea id="project-desc" rows="3" placeholder="Nhập mô tả dự án..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="project-start-date">Ngày bắt đầu <span class="required">*</span></label>
+                        <input type="date" id="project-start-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="project-end-date">Ngày kết thúc (Không bắt buộc)</label>
+                        <input type="date" id="project-end-date">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="project-color">Màu nhận diện</label>
+                        <div class="color-picker-group">
+                            <input type="color" id="project-color" value="#6366F1">
+                            <span class="color-text-val">#6366F1</span>
+                        </div>
+                    </div>
+                    <div class="form-group" id="project-status-group" style="display: none;">
+                        <label for="project-status">Trạng thái</label>
+                        <select id="project-status">
+                            <option value="Active">Active</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Archived">Archived</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-text btn-close-modal" data-modal="modal-project">Hủy</button>
+                    <button type="submit" class="btn-primary">Lưu dự án</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. Add Member Modal -->
+    <div id="modal-add-member" class="modal-backdrop" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Thêm thành viên mới</h3>
+                <button class="btn-close-modal material-symbols-outlined" data-modal="modal-add-member">close</button>
+            </div>
+            <form id="form-add-member">
+                <div class="form-group">
+                    <label for="member-select">Chọn người dùng hệ thống <span class="required">*</span></label>
+                    <select id="member-select" required>
+                        <option value="">-- Chọn thành viên --</option>
+                        <!-- Loaded from SystemUsers API -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="member-display-name">Tên hiển thị dự án</label>
+                    <input type="text" id="member-display-name" required placeholder="Tên hiển thị...">
+                </div>
+                <div class="form-group">
+                    <label for="member-email">Email</label>
+                    <input type="email" id="member-email" placeholder="example@domain.com">
+                </div>
+                <div class="form-group">
+                    <label for="member-role">Vai trò trong dự án <span class="required">*</span></label>
+                    <select id="member-role" required>
+                        <option value="Member" selected>Member (Thành viên phát triển)</option>
+                        <option value="Viewer">Viewer (Chỉ xem)</option>
+                        <option value="Manager">Manager (Quản lý)</option>
+                        <option value="Owner">Owner (Chủ sở hữu)</option>
+                    </select>
+                    <span class="help-text">Lưu ý: Nghiệp vụ ép buộc vai trò mới thêm là Member theo service, nhưng UI cung cấp đầy đủ các vai trò để kiểm thử lỗi phân quyền.</span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-text btn-close-modal" data-modal="modal-add-member">Hủy</button>
+                    <button type="submit" class="btn-primary">Thêm thành viên</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. Create Sprint Modal -->
+    <div id="modal-sprint" class="modal-backdrop" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Tạo Sprint mới</h3>
+                <button class="btn-close-modal material-symbols-outlined" data-modal="modal-sprint">close</button>
+            </div>
+            <form id="form-sprint">
+                <div class="form-group">
+                    <label for="sprint-name">Tên Sprint <span class="required">*</span></label>
+                    <input type="text" id="sprint-name" required placeholder="Ví dụ: Sprint 1: Xây dựng giao diện...">
+                </div>
+                <div class="form-group">
+                    <label for="sprint-goal">Mục tiêu Sprint (Goal)</label>
+                    <textarea id="sprint-goal" rows="2" placeholder="Mục tiêu cần hoàn thành..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sprint-start-date">Ngày bắt đầu <span class="required">*</span></label>
+                        <input type="date" id="sprint-start-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sprint-end-date">Ngày kết thúc <span class="required">*</span></label>
+                        <input type="date" id="sprint-end-date" required>
+                        <span class="help-text-sm">Mặc định: 14 ngày kể từ ngày bắt đầu.</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-text btn-close-modal" data-modal="modal-sprint">Hủy</button>
+                    <button type="submit" class="btn-primary">Tạo Sprint</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. Create Milestone Modal -->
+    <div id="modal-milestone" class="modal-backdrop" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Tạo mốc quan trọng (Milestone)</h3>
+                <button class="btn-close-modal material-symbols-outlined" data-modal="modal-milestone">close</button>
+            </div>
+            <form id="form-milestone">
+                <div class="form-group">
+                    <label for="milestone-title">Tiêu đề mốc <span class="required">*</span></label>
+                    <input type="text" id="milestone-title" required placeholder="Ví dụ: Bàn giao bản thử nghiệm MVP...">
+                </div>
+                <div class="form-group">
+                    <label for="milestone-desc">Mô tả</label>
+                    <textarea id="milestone-desc" rows="2" placeholder="Chi tiết mốc cần đạt..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="milestone-due-date">Ngày đến hạn (Due Date) <span class="required">*</span></label>
+                    <input type="date" id="milestone-due-date" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-text btn-close-modal" data-modal="modal-milestone">Hủy</button>
+                    <button type="submit" class="btn-primary">Tạo Milestone</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

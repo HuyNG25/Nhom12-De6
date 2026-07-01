@@ -206,19 +206,21 @@ namespace ProjectMemberService.Services
             var validRecipientIds = new List<Guid>();
             foreach (var mId in memberIds)
             {
-                if (Guid.TryParse(mId, out var g))
+                var mappedId = UserGuidMapper.ToGuid(mId);
+                if (mappedId != Guid.Empty)
                 {
-                    validRecipientIds.Add(g);
+                    validRecipientIds.Add(mappedId);
                 }
             }
 
+            var actorGuid = UserGuidMapper.ToGuid(operatorUserId);
             var eventData = new NotificationEventRequest
             {
                 EventType = "sprint.started",
                 ProjectId = projectId,
                 SprintId = sprint.Id,
                 ReferenceId = sprint.Id,
-                ActorUserId = Guid.TryParse(operatorUserId, out var parsedActorId) ? parsedActorId : null,
+                ActorUserId = actorGuid != Guid.Empty ? actorGuid : null,
                 RecipientUserIds = validRecipientIds,
                 Message = $"Sprint '{sprint.Name}' đã bắt đầu."
             };

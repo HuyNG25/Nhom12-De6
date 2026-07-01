@@ -22,9 +22,10 @@ namespace ProjectMemberService.Controllers
         /// </summary>
         private string GetUserId()
         {
-            return User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
+            var rawId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
                 ?? Request.Headers["X-User-Id"].FirstOrDefault() 
                 ?? "anonymous";
+            return UserGuidMapper.ToUsername(rawId);
         }
 
         /// <summary>
